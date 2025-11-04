@@ -1,0 +1,140 @@
+> smoking_boy:
+<!DOCTYPE html>
+<html lang="fa">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>قلب سه‌بعدی ✨</title>
+  <style>
+    html, body {
+      margin: 0;
+      height: 100%;
+      overflow: hidden;
+      background: radial-gradient(circle at center, #ff3366 0%, #1b1530 90%);
+      touch-action: none;
+    }
+
+    #colorBtn {
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+      width: 60px;
+      height: 60px;
+      border: none;
+      border-radius: 50%;
+      cursor: pointer;
+      background: #ff3366;
+      box-shadow: 0 0 15px rgba(255, 51, 102, 0.6);
+      transition: transform 0.2s ease, box-shadow 0.3s;
+      z-index: 10;
+    }
+    #colorBtn:hover {
+      transform: scale(1.08);
+      box-shadow: 0 0 25px rgba(255, 51, 102, 0.9);
+    }
+    #colorPicker {
+      position: fixed;
+      bottom: 100px;
+      right: 20px;
+      width: 60px;
+      height: 60px;
+      border: none;
+      outline: none;
+      background: transparent;
+      cursor: pointer;
+      opacity: 0;
+      z-index: 9;
+    }
+  </style>
+</head>
+<body>
+  <script src="https://cdn.jsdelivr.net/npm/three@0.154.0/build/three.min.js"></script>
+
+  <button id="colorBtn" title="تغییر رنگ ❤️"></button>
+  <input type="color" id="colorPicker">
+
+  <script>
+    // 🎬 صحنه و رندر
+    const scene = new THREE.Scene();
+    const camera = new THREE.PerspectiveCamera(50, window.innerWidth / window.innerHeight, 0.1, 1000);
+    const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+    renderer.setSize(window.innerWidth, window.innerHeight);
+    document.body.appendChild(renderer.domElement);
+
+    // 💡 نورها
+    scene.add(new THREE.AmbientLight(0xffffff, 0.6));
+    const light = new THREE.PointLight(0xffffff, 1.2);
+    light.position.set(20, 20, 20);
+    scene.add(light);
+
+    // ❤️ ساخت شکل قلب
+    const heartShape = new THREE.Shape();
+    heartShape.moveTo(5, 5);
+    heartShape.bezierCurveTo(5, 5, 4, 0, 0, 0);
+    heartShape.bezierCurveTo(-6, 0, -6, 7, -6, 7);
+    heartShape.bezierCurveTo(-6, 11, -3, 15.4, 5, 19);
+    heartShape.bezierCurveTo(13, 15.4, 16, 11, 16, 7);
+    heartShape.bezierCurveTo(16, 7, 16, 0, 10, 0);
+    heartShape.bezierCurveTo(7, 0, 5, 5, 5, 5);
+
+    const extrudeSettings = { depth: 3, bevelEnabled: true, bevelSegments: 2, steps: 2, bevelSize: 1, bevelThickness: 1 };
+    const geometry = new THREE.ExtrudeGeometry(heartShape, extrudeSettings);
+    geometry.center();
+
+    const savedColor = localStorage.getItem('heartColor') || '#ff3366';
+    const material = new THREE.MeshPhongMaterial({ color: new THREE.Color(savedColor), shininess: 100, specular: 0xffffff });
+    const heart = new THREE.Mesh(geometry, material);
+    scene.add(heart);
+
+    // 📏 مقیاس ثابت براساس صفحه
+    let baseScale = 1;
+    function updateHeartScale() {
+      const minSide = Math.min(window.innerWidth, window.innerHeight);
+      const scale = (minSide / 500) * 1.2;
+      baseScale = scale;
+      heart.scale.set(scale, scale, scale);
+      camera.position.z = 25 * scale * 2;
+    }
+    updateHeartScale();
+
+    // 💓 انیمیشن نرم
+    const clock = new THREE.Clock();
+    function animate() {
+      requestAnimationFrame(animate);
+      const t = clock.getElapsedTime();
+      heart.rotation.y = t * 0.8;
+
+      // پالس نرم ۵ درصدی بدون تغییر اندازه کلی
+      const pulse = 1 + 0.05 * Math.sin(t * 5);
+      heart.scale.set(baseScale * pulse, baseScale * pulse, baseScale * pulse);
+
+      renderer.render(scene, camera);
+    }
+    animate();
+
+    // واکنش به تغییر اندازه صفحه
+    window.addEventListener('resize', () => {
+      camera.aspect = window.innerWidth / window.innerHeight;
+      camera.updateProjectionMatrix();
+      renderer.setSize(window.innerWidth, window.innerHeight);
+      updateHeartScale();
+    });
+
+    // 🎨 تغییر رنگ
+    const colorBtn = document.getElementById('colorBtn');
+    const colorPicker = document.getElementById('colorPicker');
+    colorBtn.style.background = savedColor;
+    colorBtn.style.boxShadow = '0 0 15px ' + savedColor;
+
+
+colorBtn.addEventListener('click', () => colorPicker.click());
+    colorPicker.addEventListener('input', e => {
+      const newColor = e.target.value;
+      heart.material.color.set(newColor);
+      colorBtn.style.background = newColor;
+      colorBtn.style.boxShadow = '0 0 15px ' + newColor;
+      localStorage.setItem('heartColor', newColor);
+    });
+  </script>
+</body>
+</html>
